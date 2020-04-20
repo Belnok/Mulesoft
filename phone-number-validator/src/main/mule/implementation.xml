@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<flow name="implementationFlow" doc:id="26839e56-7558-4410-be2b-70903ceb2057" >
+		<logger level="INFO" doc:name="Logger" doc:id="72746824-b265-4b32-8381-bcca46e32326" message="phoneNumber.#[attributes.queryParams.phoneNumber]"/>
+		<validation:matches-regex doc:name="Matches regex" doc:id="eb9b3369-5b67-4cbf-a36c-d67b6463f79c" value="#[attributes.queryParams.phoneNumber]" regex="^[0-9]{11}$" message="PhoneNumber not valid"/>
+		<http:request method="PUT" doc:name="Request" doc:id="013dc643-4240-4095-93a3-27eaba4157a3" config-ref="NumVer_HTTP_Request_configuration" path="${http.path}" sendCorrelationId="AUTO">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	number :  attributes.queryParams.phoneNumber,
+	access_key:p('access_key')
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="ffb1c817-7b84-4902-ad13-d29ee7d6c717" message="Response sent to 'NumVerif#[payload]"/>
+	</flow>
+</mule>

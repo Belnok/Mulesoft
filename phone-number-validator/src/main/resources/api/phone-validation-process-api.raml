@@ -1,0 +1,38 @@
+#%RAML 1.0
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/6cc6817a-11e5-4ea3-a071-2802afa78e2c/ # 
+title: Phone Number Validation Process API
+version: v1.0
+
+/phone:
+  description: validate a phone number of a customer
+  get:
+    queryParameters: 
+      phoneNumber:
+        description: phone number
+        type: string
+        required: true
+    responses: 
+      200:
+        body: 
+          application/json:
+            example: |
+            
+              {
+              "phoneNumber": "1234567890",
+              "validPhone": true
+              }
+      404:
+        body: 
+          application/json:
+            example: |
+              {
+                "phoneNumber": "1234567890",
+                "validPhone": false
+      500:
+        body:
+          application/json:
+            example: |
+             {
+               "Internal Server Error"
+             }
+              

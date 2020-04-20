@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<http:listener-config name="phone-validation-process-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="${http.port}" />
+    </http:listener-config>
+    <apikit:config name="phone-validation-process-api-config" api="phone-validation-process-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<http:request-config name="NumVer_HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="704d2ffe-c77d-415e-8ee0-f50564c22840" >
+		<http:request-connection host="${http.host.numverify}" />
+	</http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="93b1f189-edb6-4718-80aa-91ad6b633431" file="${env}.properties" />
+	<global-property doc:name="Global Property" doc:id="7b4edcb9-d8b2-48d0-ac92-3031c3e7749c" name="env" value="dev" />
+	
+</mule>
