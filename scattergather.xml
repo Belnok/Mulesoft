@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="925d05a7-ecad-4a0c-ac59-448a7025ecc7" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="scattergatherFlow" doc:id="7cc026f1-a406-4935-b02e-f3e0b0bbdb35" >
+		<http:listener doc:name="Listener" doc:id="d71f7ac1-3c5d-4224-b0c2-83bf6cb6a8a5" path="/Scatter" config-ref="HTTP_Listener_config"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="6f9c697a-78c6-446f-a79a-bf410c75ab65" >
+			<route >
+				<flow-ref doc:name="Flow Reference" doc:id="a26d5248-3f40-4b5e-bbed-b04fc7c4fabb" name="FirstFlow"/>
+			</route>
+			<route >
+				<flow-ref doc:name="Flow Reference" doc:id="3137f4fd-7cb6-4f47-9e01-86cbe53219e5" name="SecondFlow"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="fdf54c13-e3e3-45cd-b610-361b5d41820d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+flatten(payload..payload)
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="a61cb38c-0eda-4634-9de5-7ac2bf42f042" message="#[payload]"/>
+	</flow>
+	<flow name="FirstFlow" doc:id="159192b3-30d9-42ee-accf-563c279a2eaf" >
+		<set-payload value="the first message" doc:name="Set Payload" doc:id="bd117938-c041-4d44-b637-cdaa6607df8a" />
+		<logger level="INFO" doc:name="Logger" doc:id="d88f01c0-5ed6-405c-9350-517f70d5a0a1" message="#[payload]"/>
+	</flow>
+	<flow name="SecondFlow" doc:id="4049e156-f546-4ecd-bbf2-db97164a0c55" >
+		<set-payload value="the second message" doc:name="Set Payload" doc:id="20a82756-7a5b-4f1d-8cbf-1852f75f6abc" />
+		<logger level="INFO" doc:name="Logger" doc:id="7480ada5-f11d-49ff-bcb8-0d76b432359c" message="#[payload]"/>
+	</flow>
+</mule>
