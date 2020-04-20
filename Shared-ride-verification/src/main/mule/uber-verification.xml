@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="457af781-40d4-4dd7-81c7-8e8840f78064" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="627c9d7f-264b-41db-8be8-87341104864b" >
+		<db:my-sql-connection host="localhost" port="3307" user="root" password="root" database="uber_db" />
+	</db:config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="8863ff72-e8d2-4e8b-bf33-0f3a9a6ec770" >
+		<http:request-connection host="anypoint.mulesoft.com" port="80" />
+	</http:request-config>
+	<flow name="uber-verificationFlow" doc:id="4a98dda5-a651-49e0-88b0-a712fa685804" >
+		<http:listener doc:name="Listener" doc:id="89cd900c-9f95-4e46-9595-217d40682b6b" config-ref="HTTP_Listener_config" path="/uber"/>
+		<logger level="INFO" doc:name="Logger" doc:id="a2ce9acc-f6a8-4d4b-af93-54837337a9d2" />
+		<scatter-gather doc:name="Scatter-Gather" doc:id="fb4fb20a-d520-423e-8820-c63cb9d0297f" >
+			<route >
+				<db:select doc:name="Select" doc:id="2a0a27b6-4c32-4547-9e1f-daa370f09805" config-ref="Database_Config">
+					<db:sql >select DLNumber, DriverName,SSN,CarPlateNumb,DriverStatus from drivers;</db:sql>
+				</db:select>
+			</route>
+			<route >
+				<http:request method="GET" doc:name="LIcenceVer" doc:id="00836d6c-1c58-47b3-bc8a-bacb522507b8" config-ref="HTTP_Request_configuration" path="/mocking/api/v1/links/e0778b27-7b27-4968-9ca3-85a337175890/Lic_Verification"/>
+			</route>
+			<route >
+				<http:request method="GET" doc:name="Vehcle_ver" doc:id="b60c75b1-3a17-4f28-b60f-d84eeeb0c559" config-ref="HTTP_Request_configuration" path="/mocking/api/v1/links/e0778b27-7b27-4968-9ca3-85a337175890/Veh_Verification"/>
+			</route>
+			<route >
+				<http:request method="GET" doc:name="Backgr_Ver" doc:id="84329e18-105b-4503-b489-cb53a09df88e" config-ref="HTTP_Request_configuration" path="/mocking/api/v1/links/e0778b27-7b27-4968-9ca3-85a337175890/Backg_Verification"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="6fc4ea11-abe2-4c16-af72-be9948d13020" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Drivers: payload."0".payload map(dr,indexOfDr) -> {
+		DLNumber: dr.DLNumber,
+		DriverName: dr.DriverName,
+		SSN:dr.SSN,
+		CarPlateNumb: dr.CarPlateNumb,
+		check: payload."1".payload filter($.SSN == dr.SSN)map(drCheck,indexOfDrCheck) ->{
+			LicenceClass: drCheck.LicenceClass,
+			ExpiredDate: drCheck.ExpiredDate,
+			IssuedDate:drCheck.IssuedDate,
+			DrivingRecord:drCheck.DrivingRecord,
+			
+			Vehcle: payload."2".payload filter($.SSN == dr.SSN)map(drVehCheck,indexOfVehCheck) ->{
+				PlateNumber: drVehCheck.PlateNumber,
+				CarModel: drVehCheck.CarModel,
+				VIN:drVehCheck.VIN,
+				VehcleTitle:drVehCheck.VehcleTitle,
+				
+			  Backg: payload."3".payload filter($.SSN == dr.SSN)map(drBackgCheck,indexOfBackgCheck) ->{
+			  	DLNumber: drBackgCheck.DLNumber,
+			  	StrtAddress: drBackgCheck.StrtAddress,
+			  	city: drBackgCheck.city,
+			  	zipcode: drBackgCheck.zipcode,
+			  	diagnosischeck: drBackgCheck.diagnosischeck,
+			  	Criminalcheck: drBackgCheck.Criminalcheck
+			  }
+			}
+			}
+		
+		}
+	}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
